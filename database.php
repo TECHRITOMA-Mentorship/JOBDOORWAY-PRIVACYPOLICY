@@ -1,10 +1,11 @@
 <?php
-$hostName="localhost";
-$dbMine = "root";
-$dbPassword = "paul123456";
+$hostName = "localhost";
+$dbUser = "root";
+$dbPassword = "";
 $dbName = "login_register";
-$conn = mysqli_connect($hostName, $dbMine, $dbPassword, $dbName);
-if (!$conn) {
-    die("Somthing went wrong;");
+$conn = mysqli_connect($hostName, $dbUser, $dbPassword, $dbName);
+
+if(!$conn){
+    die("Something went wrong;");
 }
 ?>

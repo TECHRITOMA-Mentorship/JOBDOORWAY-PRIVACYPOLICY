@@ -1,3 +1,10 @@
+<?php
+  session_start();
+  if(isset($_SESSION["mine"])){
+   header("location: index.php");
+  }
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,111 +60,122 @@
 	  </nav>
 
 
-    <div class="container">
+   
 
 <!--=======================================PHP SECTION===================================================-->
 
 
-        <?php
-        if (isset($_POST["register"])) {
-            $full_name=$_POST["full_name"];
-            $username=$_POST["username"];
-            $email=$_POST["email"];
-            $password=$_POST["password"];
-            $passwordrepeat=$_POST["passwordrepeat"];
-            $placeofbirth=$_POST["placeofbirth"];
+<div class="container" style="border: 1px solid; height: 500px; width: 60%; ">
 
-            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-            $errors= array();
-            if (empty($full_name) OR empty($username) OR empty( $email)  OR empty($password) OR empty($passwordrepeat)  OR empty($placeofbirth)) {
-                array_push($errors,"All fields are required");
-            }
-           
-            if (strlen($password)<8) {
-                array_push( $errors,"Password must be atleast 8 characters long");
-            }
-            if ($password!==$passwordrepeat) {
-                array_push($errors, "Password does not match");
-            }
-            require_once "database.php";
-            $sql = "SELECT * FROM mine WHERE email = '$email'";
-            $result = mysqli_query($conn, $sql);
-            $rowCount = mysqli_num_rows($result);
-            if ($rowCount>0) {
-                array_push($errors, "Email already exist");
+<?php
+if(isset($_POST["submit"])){
 
-            }
-            if (count($errors)>0) {
-                foreach ($errors as $errors) {
-                    echo"<div class='alert alert-danger'>$errors</div>";
-                }
-            }else{
-                
-                $sql = "INSERT INTO mine (full_name , username, email, password, passwordrepeat, placeofbirth) VALUES (?,?,?,?,?,?)";
-                $stmt = mysqli_stmt_init ($conn);
-                $preparestmt = mysqli_stmt_prepare($stmt,$sql);
-                if ($preparestmt) {
-                    mysqli_stmt_bind_param($stmt,"ssssss", $full_name, $username, $email,  $password, $passwordrepeat, $placeofbirth);
-                    mysqli_stmt_execute($stmt);
-                    echo "<div class='alert alert-success'>You Are Registered</div>";
+    $fullName = $_POST["fullname"];
+    $eMail = $_POST["email"];
+    $password = $_POST["password"];
+    $confirmPassword = $_POST["repeat_password"];
+    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+    $passwordHashtwo = password_hash($confirmPassword, PASSWORD_DEFAULT);
+    $errors = array();
 
-                }else{
-                    die("somthing went wrong");
-                }
-            }
+    if(empty($fullName) OR empty($eMail) OR empty($password) OR empty($confirmPassword)){
 
+
+        array_push($errors,"All fields are required");
+    }
+
+    if(!filter_var($eMail, FILTER_VALIDATE_EMAIL)){
+
+
+        array_push($errors, "Email is not valid");
+    }
+
+    if(strlen($password)<8){
+
+
+        array_push($errors, "Password must be atleast 8 characteres long");
+    }
+
+    if($password!==$confirmPassword){
+
+        array_push($errors, "Password does not match");
+    }
+    //We need to connect to the database before checking if the email entered already exists
+    require_once "database.php";
+    $sql = "SELECT * FROM mine WHERE email='$eMail'";
+    $result = mysqli_query($conn, $sql);
+    $rowCount = mysqli_num_rows($result);
+
+     if($rowCount>0){
+
+        array_push($errors, "Email already exists");
+    }
+
+    if(count($errors)>0){
+
+
+        foreach($errors as $error){
+
+
+            echo "<div class='alert alert-danger'>$error</div>";
         }
+    }else{
 
-
-        ?>
-
-        <!--==========================Registrationform=================================-->
-        <div class="container" style="border:1px solid  black; width:600px;">
-        <h1 >Registration Form</h1>
-        <p>Please kindly fill the informations bellow</p>  
-        <form action="registration.php" method="post" >
-            <div class="form-group">
-                <label for="full_name">Name</label>
-                <input type="full_name" class="form-control" name="full_name" placeholder="enter your full name">
-            </div>
-            
-            <div class="form-group">
-                <label for="username">User name</label>
-                <input type="text" class="form-control" name="username" placeholder="enter your user name" id="username" >
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" name="email" placeholder="enter your email" id="email" >
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" name="password" placeholder="enter your pasword" id="password" >
-            </div>
-            <div class="form-group">
-                <label for="passwordrepeat">Re-enter Password</label>
-                <input type="password" class="form-control" name="passwordrepeat" placeholder="re-enter password" id="passwordrepeat" >
-            </div>
-            <div class="form-group">
-                <label for="date_of_birth">Date of birth</label>
-                <input type="text" class="form-control" name="date_of_birth" placeholder="enter your date of birth" id="date_of_birth" >
-            </div>
-            <div class="form-group">
-                <label for="placeofbirth">Place Of Birth</label>
-                <input type="text" class="form-control" name="placeofbirth" placeholder="enter your place of birth" id="placeofbirth" >
-            </div>
-
-            <p>Already have and acount? <a href="login.php">Log in here</a></p>
-            
-
-            <div class="form-group">
-                <input type="submit" class="btn btn-primary" value="Register" name="register" >
-            </div>
-            
-        </form>
-        </div>
+        // we will insert the data into the database table users
         
+        $sql = "INSERT INTO mine (fullname, email, password) VALUES( ?, ?, ?)";
+        $stmt = mysqli_stmt_init($conn);
+        $preparestmt = mysqli_stmt_prepare($stmt, $sql);
+
+        if($preparestmt){
+            mysqli_stmt_bind_param($stmt,"sss",$fullName,$eMail,$passwordHash);
+             mysqli_stmt_execute($stmt);
+            echo "<div class='alert alert-success'>You are registered successfully</div>";
+        }else{
+
+             
+            die("Something went wrong");
+        }
+    }
+}
+
+?>
+<!--=======================================form=======================-->
+<form action="registration.php" method="post">
+
+
+    <div class="form-group" style="margin:12px 0;">
+    <label for="fullname">Full Name:</label>
+
+        <input type="text" class="form-control" name="fullname" placeholder="Full Name" id="input">
     </div>
 
+    <div class="form-group" style="margin:12px 0;">
+    <label for="email">Email:</label>
+
+        <input type="email" class="form-control" name="email" placeholder="Email" id="input">
+    </div>
+
+    <div class="form-group" style="margin:12px 0;">
+
+        <label for="password" >Password:</label>
+        <input type="password" class="form-control" name="password" placeholder="Password"id="input">
+    </div>
+
+    <div class="form-group" style="margin:12px 0;">
+        <label for="repeat_password">Confirm Password:</label>
+        <input type="password" class="form-control" name="repeat_password" placeholder="Confirm Password" id="input">
+    </div>
+
+    <div class="form-btn">
+
+        <input type="submit" class="btn btn-primary" name="submit" value="Register" id="input">
+    </div>
+</form>
+<div>
+<p>Already have an account? <a href="login.php">Log in Here</a></p>
+</div>
+</div>
 
          <!--============================================FOOTER==================================-->
 

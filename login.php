@@ -1,3 +1,10 @@
+<?php
+  session_start();
+  if(isset($_SESSION["mine"])){
+   header("location: index.php");
+  }
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,53 +58,60 @@
 		  </div>
 		</div>
 	  </nav>
-      <!--============PHP PART======-->
-      <?php
-      if (isset($_POST["login"])){
-        $email=$_POST["email"];
-        $password=$_POST["password"];
-        
-        require_once "database.php";
 
-        $sql = "SELECT * FROM mine WHERE email = '$email'";
-        $result = mysqli_query($conn, $sql);
-        $mine = mysqli_fetch_array($result, MYSQLI_ASSOC);
+      <!--======================================PHP PART=======================================-->
 
-        if ($mine) {
-            if (password_verify($password, $mine["password"])) {
-                header("location: index.php");
-                die ();
+      <div class="container"  style="border: 1px solid; height: 500px; width: 40%; ">
+
+    <?php
+       if (isset($_POST["login"])){
+         $eMail = $_POST["email"];
+         $password = $_POST["password"];
+         require_once "database.php";
+         $sql = "SELECT * FROM mine WHERE email = '$eMail'";
+         $result = mysqli_query($conn, $sql);
+         $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
+
+         if($user){
+            if(password_verify($password, $user["password"])){
+               session_start();
+               $_SESSION["mine"] = "yes";
+               header("location: index.php");
+               die();
             }else{
-                echo "<div class='alert alert-danger'>Pasword does notmatch</div>";
-             }
-        }else{
-             echo "<div class='alert alert-danger'>Email does notmatch</div>";
-        }
-      }
-      ?>
-      <!--========section============-->
-      <div class="container" style="border: 1px solid; width: 500px;">
-        <h1>Login Page</h1>
-        <form action="login.php" method="post">
-          <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control"  name="email" required>
-          </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" name="password" required>
-          </div>
-          <button type="submit" name="login" value="login" class="btn btn-primary">Login</button>
-          <div class="form-check mb-3">
-            <label class="form-check-label">
-              <input class="form-check-input" type="checkbox" name="remember"> Remember me
-            </label>
-          </div>
+               echo "<div class='alert alert-danger'>Password does not match</div>";
+            }
+         }else{
+            echo "<div class='alert alert-danger'>Email does not match</div>";
+         }
 
-        </form>
-        <div class="mt-3">
+       }
+    ?>
+
+    <form action="login.php" method="post">
+
+        <div class="form-group" style="margin:18px 0;">
+
+            <label for="email">Enter your Email:</label>
+            <input class="form-control" name="email" type="email" placeholder="Email">
+        </div>
+
+        <div class="form-group" style="margin:18px 0;">
+
+            <label for="password">Enter your Password:</label>
+            <input class="form-control" name="password" type="password" placeholder="Password">
+        </div>
+
+        <div class="form-btn">
+            <input type="submit" value="login" name="login" class="btn btn-primary">
+        </div>
+    </form>
+    <div><p>Don't have and account? <a href="registration.php">Register Here</a></p></div>
+    <div class="mt-3">
           <a href="#">Forgot password?</a>
         </div>
+ </div>
+        
       </div>
       
 
